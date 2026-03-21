@@ -41,7 +41,7 @@
             border-radius: 5px; cursor: pointer; font-family: 'Bebas Neue'; font-size: 1rem; transition: 0.3s; 
         }
         nav button.active-btn { background: var(--primary); box-shadow: 0 0 15px var(--primary-glow); border-color: var(--primary); }
-        #nav-admin { display: none; background: #900; } /* Visible uniquement si connecté */
+        #nav-admin { display: none; background: #900; }
 
         /* SECTIONS */
         section { display: none; padding: 40px 15px; text-align: center; max-width: 850px; margin: auto; }
@@ -62,7 +62,7 @@
         .media-item p { white-space: pre-wrap; margin: 12px 0; }
         .post-date { display: block; text-align: right; font-size: 0.7rem; opacity: 0.5; font-style: italic; }
 
-        /* FORMULAIRES (Contact & Admin) */
+        /* FORMULAIRES */
         input, textarea, select { 
             width: 100%; padding: 15px; border-radius: 10px; border: 1px solid var(--glass-border); 
             background: rgba(0,0,0,0.5); color: #fff; font-family: inherit; margin-bottom: 10px; box-sizing: border-box;
@@ -71,7 +71,7 @@
         .btn-send:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--primary-glow); }
         .btn-delete { background: #500; font-size: 0.8rem; padding: 5px 10px; border-radius: 5px; cursor: pointer; border: none; color: white; margin-top: 10px; }
 
-        /* ADMIN DASHBOARD SPECIFIQUE */
+        /* ADMIN DASHBOARD */
         #admin-dashboard { text-align: left; }
         .admin-card { background: rgba(255,255,255,0.03); padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid var(--primary); }
         .flex-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
@@ -171,12 +171,16 @@
             <textarea id="postText" placeholder="Légende du post..."></textarea>
             <input type="text" id="postDate" placeholder="Date/Heure d'envoi (ex: 12 Fév 2026)">
             
+            <div id="uploadProgressCont" style="display:none; width:100%; background: #222; border-radius: 10px; height: 10px; margin: 10px 0; overflow: hidden;">
+                <div id="uploadProgressBar" style="width: 0%; height: 100%; background: var(--primary); transition: width 0.3s;"></div>
+            </div>
+
             <button class="btn-send" id="btnUpload" onclick="publishPost()">PUBLIER MAINTENANT</button>
         </div>
 
         <div class="admin-card">
             <h3>Posts existants dans cette section</h3>
-            <p style="font-size: 0.8rem; opacity: 0.6;">Les modifications et suppressions sont instantanées.</p>
+            <p style="font-size: 0.8rem; opacity: 0.6;">Les modifications et suppressions sont instantanées. Utilise les flèches pour changer l'ordre.</p>
             <div id="adminPostList" style="max-height: 400px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 10px;">
             </div>
         </div>
@@ -203,10 +207,10 @@
         const auth = getAuth(app);
 
         let currentSubs = 0, animSpeed = 2000, confettiUntil = 0;
-        let editingPostId = null; // Variable pour savoir si on est en train de modifier un post
+        let editingPostId = null; 
+        let currentAdminPosts = []; // Pour gérer l'ordre
 
         // --- LOGIQUE PUBLIQUE ---
-
         window.showSection = (id) => {
             document.querySelectorAll("section, nav button").forEach(el => el.classList.remove("active", "active-btn"));
             document.getElementById(id).classList.add("active");
@@ -228,7 +232,6 @@
             requestAnimationFrame(step);
         }
 
-        // Ecoute des stats
         onSnapshot(doc(db, "stats", "followers"), s => {
             if(s.exists()){
                 currentSubs = s.data().count;
@@ -244,7 +247,6 @@
             }
         });
 
-        // Chargement des posts
         const load = (col, contId) => {
             onSnapshot(query(collection(db, col), orderBy("date", "desc")), snap => {
                 const cont = document.getElementById(contId);
@@ -258,9 +260,7 @@
                     else if(data.type === "image") m = `<img src="${data.url}" loading="lazy">`;
                     else if(data.type === "video") m = `<video src="${data.url}" controls></video>`;
                     
-                    // Si Admin : ajouter bouton supprimer
                     const adminTools = auth.currentUser ? `<button class="btn-delete" onclick="window.deletePost('${col}', '${id}')">Supprimer X</button>` : "";
-
                     html += `<div class="media-item">${badge}${m}<p>${data.text || ""}</p><span class="post-date">${data.heure || ""}</span>${adminTools}</div>`;
                 });
                 cont.innerHTML = html;
@@ -268,18 +268,13 @@
         };
         ["rapsound", "tendances", "avenir"].forEach(c => load(c, c+"Container"));
 
-        // --- PORTE DÉROBÉE & AUTH ---
-
+        // --- AUTHENTIFICATION ---
         document.getElementById("emailForm").onsubmit = e => {
             e.preventDefault();
             const email = document.getElementById("userEmail").value;
             const msg = document.getElementById("userMsg").value;
-            
-            if(email === "AdministrateurRapSound-music" && msg.trim() === "") {
-                showSection('admin-login');
-            } else {
-                window.location.href = `mailto:rapsound-music_contact@tutamail.com?subject=Contact&body=${encodeURIComponent(msg)}`;
-            }
+            if(email === "AdministrateurRapSound-music" && msg.trim() === "") showSection('admin-login');
+            else window.location.href = `mailto:rapsound-music_contact@tutamail.com?subject=Contact&body=${encodeURIComponent(msg)}`;
         };
 
         document.getElementById("loginForm").onsubmit = e => {
@@ -291,59 +286,79 @@
 
         window.logout = () => signOut(auth).then(() => location.reload());
 
-        // --- FONCTIONS ADMIN (STUDIO) ---
-
-        // 1. FONCTION POUR CHARGER LES POSTS DANS L'ADMIN
+        // --- FONCTIONS ADMIN ---
         const refreshAdminList = () => {
             const col = document.getElementById("postDest").value;
             const listCont = document.getElementById("adminPostList");
 
             onSnapshot(query(collection(db, col), orderBy("date", "desc")), snap => {
                 listCont.innerHTML = "";
-                snap.forEach(d => {
-                    const data = d.data();
-                    const id = d.id;
-                    
+                currentAdminPosts = []; // On réinitialise notre liste locale
+                
+                // Remplir le tableau local
+                snap.forEach(d => currentAdminPosts.push({ id: d.id, ...d.data() }));
+
+                // Générer l'affichage
+                currentAdminPosts.forEach((data, index) => {
                     const item = document.createElement("div");
                     item.style = "display: flex; align-items: center; gap: 10px; margin-bottom: 10px; padding: 10px; background: rgba(0,0,0,0.4); border-radius: 8px; border-left: 3px solid var(--primary);";
                     
-                    // Thumbnail (Aperçu)
-                    let thumb = `<div style="width:50px; height:50px; background:#222; border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:1.5rem;">📝</div>`;
+                    let thumb = `<div style="width:40px; height:40px; background:#222; border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:1.2rem;">📝</div>`;
                     if(data.type === 'image' || data.type === 'youtube') {
                         const imgUrl = data.type === 'youtube' ? `https://img.youtube.com/vi/${data.url.split('v=')[1]?.split('&')[0]}/default.jpg` : data.url;
-                        thumb = `<img src="${imgUrl}" style="width:50px; height:50px; object-fit:cover; border-radius:5px;">`;
+                        thumb = `<img src="${imgUrl}" style="width:40px; height:40px; object-fit:cover; border-radius:5px;">`;
                     }
 
+                    // Boutons Monter/Descendre (Désactivés si tout en haut ou tout en bas)
+                    const btnUp = index > 0 ? `<button onclick="window.movePost('${col}', ${index}, -1)" style="background:#444; border:none; color:white; padding:2px 8px; cursor:pointer; border-radius:3px;">▲</button>` : `<div style="width:25px;"></div>`;
+                    const btnDown = index < currentAdminPosts.length - 1 ? `<button onclick="window.movePost('${col}', ${index}, 1)" style="background:#444; border:none; color:white; padding:2px 8px; cursor:pointer; border-radius:3px;">▼</button>` : `<div style="width:25px;"></div>`;
+
                     item.innerHTML = `
+                        <div style="display:flex; flex-direction:column; gap:4px; margin-right:5px;">
+                            ${btnUp}
+                            ${btnDown}
+                        </div>
                         ${thumb}
                         <div style="flex:1; overflow: hidden;">
                             <strong style="font-size: 0.8rem; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${data.text || "(Sans texte)"}</strong>
                             <span style="font-size: 0.7rem; opacity: 0.5;">${data.heure || ""}</span>
                         </div>
-                        <button onclick="window.editPost('${col}', '${id}')" style="background:none; border:1px solid #aaa; color:white; padding:5px; border-radius:4px; cursor:pointer;">✏️</button>
-                        <button onclick="window.deletePost('${col}', '${id}')" style="background:none; border:1px solid red; color:red; padding:5px; border-radius:4px; cursor:pointer;">X</button>
+                        <button onclick="window.editPost('${col}', '${data.id}')" style="background:none; border:1px solid #aaa; color:white; padding:5px; border-radius:4px; cursor:pointer;">✏️</button>
+                        <button onclick="window.deletePost('${col}', '${data.id}')" style="background:none; border:1px solid red; color:red; padding:5px; border-radius:4px; cursor:pointer;">X</button>
                     `;
                     listCont.appendChild(item);
                 });
             });
         };
 
-        // 2. ÉCOUTER LE CHANGEMENT DE SECTION DANS LE MENU DÉROULANT
+        // FONCTION MAGIQUE POUR CHANGER L'ORDRE
+        window.movePost = async (col, currentIndex, direction) => {
+            const targetIndex = currentIndex + direction;
+            if (targetIndex < 0 || targetIndex >= currentAdminPosts.length) return;
+
+            const currentDoc = currentAdminPosts[currentIndex];
+            const targetDoc = currentAdminPosts[targetIndex];
+
+            // On échange simplement les timestamps (date) entre les deux documents !
+            const tempDate = currentDoc.date;
+            
+            await updateDoc(doc(db, col, currentDoc.id), { date: targetDoc.date });
+            await updateDoc(doc(db, col, targetDoc.id), { date: tempDate });
+        };
+
         document.getElementById("postDest").addEventListener("change", refreshAdminList);
 
         onAuthStateChanged(auth, user => {
             if(user) {
                 document.getElementById("btn-admin-dashboard").style.display = "block";
-                refreshAdminList(); // Lancer au démarrage une fois connecté
+                refreshAdminList();
             }
         });
 
-        // 3. FONCTION POUR RÉCUPÉRER UN POST POUR MODIFICATION
         window.editPost = async (col, id) => {
-            editingPostId = id; // On stocke l'ID
+            editingPostId = id;
             const docRef = doc(db, col, id);
             const snap = await getDoc(docRef);
-            
             if(snap.exists()) {
                 const data = snap.data();
                 document.getElementById("postType").value = data.type;
@@ -381,57 +396,91 @@
             if(confirm("Supprimer ce post ?")) await deleteDoc(doc(db, col, id));
         };
 
-        // 4. MODIFICATION DE LA FONCTION PUBLISH POUR GÉRER L'UPDATE
+        // NOUVELLE FONCTION PUBLISH AVEC BARRE DE PROGRESSION
         window.publishPost = async () => {
             const btn = document.getElementById("btnUpload");
+            const progCont = document.getElementById("uploadProgressCont");
+            const progBar = document.getElementById("uploadProgressBar");
+            
             const type = document.getElementById("postType").value;
             const col = document.getElementById("postDest").value;
             const text = document.getElementById("postText").value;
             const dateStr = document.getElementById("postDate").value;
             let finalUrl = document.getElementById("urlInput").value;
 
-            btn.innerText = "PATIENTE...";
             btn.disabled = true;
+            btn.innerText = "PATIENTE...";
 
             try {
-                // Si c'est un nouveau fichier Cloudinary
                 const file = document.getElementById("fileInput").files[0];
-                if(file && (type === 'image' || type === 'video')) {
+
+                if (file && (type === 'image' || type === 'video')) {
+                    progCont.style.display = "block";
+                    progBar.style.width = "0%";
+
                     const formData = new FormData();
                     formData.append("file", file);
-                    formData.append("upload_preset", "RapSound");
-                    const res = await fetch("https://api.cloudinary.com/v1_1/RapSoundWeb/upload", { method: "POST", body: formData });
-                    const cloudData = await res.json();
-                    finalUrl = cloudData.secure_url;
+                    formData.append("upload_preset", "RapSoundWeb");
+
+                    // Utilisation de XMLHttpRequest pour suivre la progression
+                    finalUrl = await new Promise((resolve, reject) => {
+                        const xhr = new XMLHttpRequest();
+                        xhr.open("POST", "https://api.cloudinary.com/v1_1/dpzhcg6sp/upload");
+
+                        xhr.upload.onprogress = (e) => {
+                            if (e.lengthComputable) {
+                                const percent = Math.round((e.loaded / e.total) * 100);
+                                progBar.style.width = percent + "%";
+                                btn.innerText = `CHARGEMENT : ${percent}%`;
+                            }
+                        };
+
+                        xhr.onload = () => {
+                            const res = JSON.parse(xhr.responseText);
+                            if (res.secure_url) resolve(res.secure_url);
+                            else reject(new Error(res.error.message));
+                        };
+
+                        xhr.onerror = () => reject(new Error("Échec du transfert réseau"));
+                        xhr.send(formData);
+                    });
                 }
 
-                const postData = { type, url: finalUrl, text, heure: dateStr, date: Date.now() };
+                // Ajout du post
+                const postData = { 
+                    type, 
+                    url: finalUrl || "", 
+                    text, 
+                    heure: dateStr, 
+                    date: Date.now(),
+                    position: 0 
+                };
 
                 if(editingPostId) {
-                    // MODE UPDATE
                     await updateDoc(doc(db, col, editingPostId), postData);
-                    alert("Post mis à jour !");
+                    alert("Mis à jour ! ✅");
                     editingPostId = null;
                 } else {
-                    // MODE NEW POST
                     await addDoc(collection(db, col), postData);
-                    alert("Publié sur le site !");
+                    alert("Publié ! 🚀");
                 }
 
                 // Reset
                 document.getElementById("postText").value = "";
-                document.getElementById("btnUpload").innerText = "PUBLIER MAINTENANT";
+                document.getElementById("fileInput").value = "";
+                progCont.style.display = "none";
+                btn.innerText = "PUBLIER MAINTENANT";
             } catch (e) {
-                alert("Erreur: " + e.message);
+                alert("⚠️ " + e.message);
+                progCont.style.display = "none";
             } finally {
                 btn.disabled = false;
             }
         };
-
     </script>
 
     <script>
-        // ANIMATION PARTICULES (Optimisée)
+        // ANIMATION PARTICULES
         const canvas = document.getElementById("particles"), ctx = canvas.getContext("2d");
         let pts = [];
         const res = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
