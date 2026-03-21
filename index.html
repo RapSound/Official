@@ -3,8 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RapSound | Official & Studio</title>
     
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="favicon.png">
+
+    <title>RapSound | Official Studio & Exclu Rap</title>
+
+    <meta name="description" content="RapSound Official : Site Officiel de la chaîne YouTube RapSound-music !">
+    <meta name="keywords" content="RapSound, Rap, Studio, Musique, Exclu, Tendances, Freestyle, Beatmaker, Official RapSound, Rap Français, rapsound, RapSound officiel, rapsound rap français, rap français, rap fr, musique rap française, paroles rap français, lyrics rap fr, karaoké rap français, rap karaoke fr, blind test rap français, quiz rap fr, hits rap français, classiques rap français, rap français populaire, rap français tendance, rap français youtube, chaîne rap français, contenu rap français, rap français instrumental, beats rap français, découverte rap français">
+    <meta name="author" content="RapSound">
+
+    <meta property="og:title" content="RapSound | Official">
+    <meta property="og:description" content="Le futur du rap se passe ici !">
+    <meta property="og:url" content="https://rapsound.github.io/Official/">
+    <meta property="og:image" content="https://rapsound.github.io/Official/favicon.png"> 
+    <meta property="og:type" content="website">
+
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@300;400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 
@@ -91,7 +105,7 @@
 
     <section id="rapsound" class="active">
         <a href="https://youtube.com/@rapsound-music" target="_blank" class="profile-link">
-            <img src="https://yt3.googleusercontent.com/Uhsp5Mf-_im0rMu1DbN2jrV0lW3xPOOhDvJFtc_nlPfY3Ejvge9q1EaUi5jZb3Y5qAs68sFseA=s160-c-k-c0x00ffffff-no-rj" class="profile-img" alt="RapSound">
+            <img src="https://rapsound.github.io/Official/favicon.png" class="profile-img" alt="RapSound">
         </a>
         <h1>RapSound</h1>
         <div id="followerCount">0</div>
@@ -208,7 +222,7 @@
 
         let currentSubs = 0, animSpeed = 2000, confettiUntil = 0;
         let editingPostId = null; 
-        let currentAdminPosts = []; // Pour gérer l'ordre
+        let currentAdminPosts = []; 
 
         // --- LOGIQUE PUBLIQUE ---
         window.showSection = (id) => {
@@ -222,6 +236,7 @@
 
         function animateCounter(target) {
             const el = document.getElementById("followerCount");
+            if(!el) return;
             let start = null;
             const step = (now) => {
                 if (!start) start = now;
@@ -250,11 +265,12 @@
         const load = (col, contId) => {
             onSnapshot(query(collection(db, col), orderBy("date", "desc")), snap => {
                 const cont = document.getElementById(contId);
+                if(!cont) return;
                 let html = "";
                 snap.forEach(d => {
                     const data = d.data();
                     const id = d.id;
-                    const badge = col === "avenir" ? '<span class="badge-tag">EXCLU</span>' : '';
+                    const badge = col === "avenir" ? '<span class="badge-tag" style="background:var(--primary); padding:2px 8px; border-radius:4px; font-size:0.7rem; font-weight:bold; margin-bottom:10px; display:inline-block;">EXCLU</span><br>' : '';
                     let m = "";
                     if(data.type === "youtube") m = `<iframe src="${data.url.replace('watch?v=', 'embed/')}" loading="lazy" allowfullscreen></iframe>`;
                     else if(data.type === "image") m = `<img src="${data.url}" loading="lazy">`;
@@ -293,12 +309,9 @@
 
             onSnapshot(query(collection(db, col), orderBy("date", "desc")), snap => {
                 listCont.innerHTML = "";
-                currentAdminPosts = []; // On réinitialise notre liste locale
-                
-                // Remplir le tableau local
+                currentAdminPosts = [];
                 snap.forEach(d => currentAdminPosts.push({ id: d.id, ...d.data() }));
 
-                // Générer l'affichage
                 currentAdminPosts.forEach((data, index) => {
                     const item = document.createElement("div");
                     item.style = "display: flex; align-items: center; gap: 10px; margin-bottom: 10px; padding: 10px; background: rgba(0,0,0,0.4); border-radius: 8px; border-left: 3px solid var(--primary);";
@@ -309,7 +322,6 @@
                         thumb = `<img src="${imgUrl}" style="width:40px; height:40px; object-fit:cover; border-radius:5px;">`;
                     }
 
-                    // Boutons Monter/Descendre (Désactivés si tout en haut ou tout en bas)
                     const btnUp = index > 0 ? `<button onclick="window.movePost('${col}', ${index}, -1)" style="background:#444; border:none; color:white; padding:2px 8px; cursor:pointer; border-radius:3px;">▲</button>` : `<div style="width:25px;"></div>`;
                     const btnDown = index < currentAdminPosts.length - 1 ? `<button onclick="window.movePost('${col}', ${index}, 1)" style="background:#444; border:none; color:white; padding:2px 8px; cursor:pointer; border-radius:3px;">▼</button>` : `<div style="width:25px;"></div>`;
 
@@ -331,17 +343,12 @@
             });
         };
 
-        // FONCTION MAGIQUE POUR CHANGER L'ORDRE
         window.movePost = async (col, currentIndex, direction) => {
             const targetIndex = currentIndex + direction;
             if (targetIndex < 0 || targetIndex >= currentAdminPosts.length) return;
-
             const currentDoc = currentAdminPosts[currentIndex];
             const targetDoc = currentAdminPosts[targetIndex];
-
-            // On échange simplement les timestamps (date) entre les deux documents !
             const tempDate = currentDoc.date;
-            
             await updateDoc(doc(db, col, currentDoc.id), { date: targetDoc.date });
             await updateDoc(doc(db, col, targetDoc.id), { date: tempDate });
         };
@@ -365,7 +372,6 @@
                 document.getElementById("postText").value = data.text || "";
                 document.getElementById("postDate").value = data.heure || "";
                 if(data.type === 'youtube') document.getElementById("urlInput").value = data.url;
-                
                 window.toggleInputType();
                 document.getElementById("btnUpload").innerText = "METTRE À JOUR LE POST";
                 window.scrollTo({top: 0, behavior: 'smooth'});
@@ -396,7 +402,6 @@
             if(confirm("Supprimer ce post ?")) await deleteDoc(doc(db, col, id));
         };
 
-        // NOUVELLE FONCTION PUBLISH AVEC BARRE DE PROGRESSION
         window.publishPost = async () => {
             const btn = document.getElementById("btnUpload");
             const progCont = document.getElementById("uploadProgressCont");
@@ -412,21 +417,19 @@
             btn.innerText = "PATIENTE...";
 
             try {
-                const file = document.getElementById("fileInput").files[0];
+                const fileInput = document.getElementById("fileInput");
+                const file = fileInput.files[0];
 
                 if (file && (type === 'image' || type === 'video')) {
                     progCont.style.display = "block";
                     progBar.style.width = "0%";
-
                     const formData = new FormData();
                     formData.append("file", file);
                     formData.append("upload_preset", "RapSoundWeb");
 
-                    // Utilisation de XMLHttpRequest pour suivre la progression
                     finalUrl = await new Promise((resolve, reject) => {
                         const xhr = new XMLHttpRequest();
                         xhr.open("POST", "https://api.cloudinary.com/v1_1/dpzhcg6sp/upload");
-
                         xhr.upload.onprogress = (e) => {
                             if (e.lengthComputable) {
                                 const percent = Math.round((e.loaded / e.total) * 100);
@@ -434,25 +437,22 @@
                                 btn.innerText = `CHARGEMENT : ${percent}%`;
                             }
                         };
-
                         xhr.onload = () => {
                             const res = JSON.parse(xhr.responseText);
                             if (res.secure_url) resolve(res.secure_url);
                             else reject(new Error(res.error.message));
                         };
-
                         xhr.onerror = () => reject(new Error("Échec du transfert réseau"));
                         xhr.send(formData);
                     });
                 }
 
-                // Ajout du post
                 const postData = { 
                     type, 
                     url: finalUrl || "", 
                     text, 
                     heure: dateStr, 
-                    date: Date.now(),
+                    date: editingPostId ? Date.now() : Date.now(), 
                     position: 0 
                 };
 
@@ -465,14 +465,14 @@
                     alert("Publié ! 🚀");
                 }
 
-                // Reset
                 document.getElementById("postText").value = "";
-                document.getElementById("fileInput").value = "";
+                fileInput.value = "";
                 progCont.style.display = "none";
                 btn.innerText = "PUBLIER MAINTENANT";
             } catch (e) {
                 alert("⚠️ " + e.message);
                 progCont.style.display = "none";
+                btn.innerText = "PUBLIER MAINTENANT";
             } finally {
                 btn.disabled = false;
             }
