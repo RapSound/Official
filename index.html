@@ -3,74 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RapSound | Official</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" defer></script>
-    <style>
-        :root { --primary: #ff1a1a; --primary-glow: rgba(255, 26, 26, 0.6); --bg: #020000; }
-        
-        body { margin: 0; font-family: 'Montserrat', sans-serif; color: #fff; background-color: var(--bg); overflow-x: hidden; }
+    <title>RapSound | Official & Studio</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 
-        /* FOND OPTIMISÉ GPU */
+    <style>
+        :root {
+            --primary: #ff1a1a;
+            --primary-glow: rgba(255, 26, 26, 0.6);
+            --dark-red: #2a0000;
+            --bg-black: #020000;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body { 
+            margin: 0; font-family: 'Montserrat', sans-serif; color: white; background: var(--bg-black); overflow-x: hidden;
+        }
+
+        /* FOND ANIMÉ */
         .bg-layer {
             position: fixed; inset: 0; z-index: -2;
-            background: linear-gradient(45deg, #020000, #2a0000, #020000);
+            background: linear-gradient(45deg, var(--bg-black), var(--dark-red), var(--bg-black));
             background-size: 400% 400%; animation: grad 12s ease infinite;
-            will-change: transform;
         }
         @keyframes grad { 0%, 100% { background-position: 0% 50% } 50% { background-position: 100% 50% } }
         #particles { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
 
-        /* NAV */
+        /* NAVIGATION */
         nav { 
             display: flex; justify-content: center; gap: 8px; padding: 10px; position: sticky; top: 0; 
             z-index: 100; background: rgba(0,0,0,0.9); backdrop-filter: blur(20px); border-bottom: 2px solid var(--primary); flex-wrap: wrap;
         }
         nav button { 
-            background: none; border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 8px 15px; 
+            background: none; border: 1px solid var(--glass-border); color: #fff; padding: 8px 15px; 
             border-radius: 5px; cursor: pointer; font-family: 'Bebas Neue'; font-size: 1rem; transition: 0.3s; 
         }
         nav button.active-btn { background: var(--primary); box-shadow: 0 0 15px var(--primary-glow); border-color: var(--primary); }
+        #nav-admin { display: none; background: #900; } /* Visible uniquement si connecté */
 
         /* SECTIONS */
         section { display: none; padding: 40px 15px; text-align: center; max-width: 850px; margin: auto; }
         section.active { display: block; animation: slideIn 0.6s cubic-bezier(0.2, 1, 0.3, 1); }
         @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* PROFIL & COMPTEUR */
-        .profile-link { display: inline-block; margin-bottom: 10px; }
-        .profile-img { 
-            width: clamp(100px, 20vw, 140px); height: clamp(100px, 20vw, 140px); 
-            border-radius: 50%; border: 3px solid var(--primary); box-shadow: 0 0 20px var(--primary-glow); object-fit: cover; 
-        }
-        h1 { font-family: 'Bebas Neue'; font-size: clamp(2.5rem, 10vw, 5.5rem); margin: 10px 0; letter-spacing: 2px; }
+        /* CONTENU & MEDIA */
+        .profile-img { width: 140px; height: 140px; border-radius: 50%; border: 3px solid var(--primary); box-shadow: 0 0 20px var(--primary-glow); object-fit: cover; }
+        h1 { font-family: 'Bebas Neue'; font-size: clamp(2.5rem, 10vw, 5.5rem); margin: 10px 0; }
         #followerCount { font-family: 'Bebas Neue'; font-size: clamp(5rem, 20vw, 11rem); line-height: 0.9; filter: drop-shadow(0 0 20px var(--primary-glow)); }
-        .sub-label { font-weight: 700; color: var(--primary); text-transform: uppercase; display: block; margin-bottom: 30px; font-size: 0.9rem; letter-spacing: 5px; }
+        .sub-label { font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 5px; font-size: 0.9rem; }
 
-        /* CONTENU */
-        .media-item { margin: 25px auto; padding: 15px; border-radius: 15px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); text-align: left; }
-        iframe, img, video { width: 100%; aspect-ratio: 16/9; border-radius: 10px; border: none; display: block; }
-        .post-date { display: block; text-align: right; font-size: 0.7rem; opacity: 0.5; font-style: italic; margin-top: 10px; }
-        .badge-tag { background: var(--primary); padding: 3px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; margin-bottom: 8px; display: inline-block; }
+        .media-item { 
+            margin: 25px auto; padding: 15px; border-radius: 15px; background: var(--glass); 
+            border: 1px solid var(--glass-border); backdrop-filter: blur(10px); text-align: left; position: relative;
+        }
+        .media-item iframe, .media-item img, .media-item video { width: 100%; aspect-ratio: 16/9; border-radius: 10px; border: none; }
+        .media-item p { white-space: pre-wrap; margin: 12px 0; }
+        .post-date { display: block; text-align: right; font-size: 0.7rem; opacity: 0.5; font-style: italic; }
 
-        /* FORM */
-        #emailForm { display: flex; flex-direction: column; max-width: 500px; margin: auto; gap: 12px; }
-        input, textarea { padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: #fff; font-family: inherit; }
-        .btn-send { background: var(--primary); color: #fff; border: none; padding: 15px; border-radius: 30px; font-family: 'Bebas Neue'; font-size: 1.3rem; cursor: pointer; transition: 0.3s; }
+        /* FORMULAIRES (Contact & Admin) */
+        input, textarea, select { 
+            width: 100%; padding: 15px; border-radius: 10px; border: 1px solid var(--glass-border); 
+            background: rgba(0,0,0,0.5); color: #fff; font-family: inherit; margin-bottom: 10px; box-sizing: border-box;
+        }
+        .btn-send { background: var(--primary); color: #fff; border: none; padding: 15px 40px; border-radius: 30px; font-family: 'Bebas Neue'; font-size: 1.3rem; cursor: pointer; transition: 0.3s; }
         .btn-send:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--primary-glow); }
+        .btn-delete { background: #500; font-size: 0.8rem; padding: 5px 10px; border-radius: 5px; cursor: pointer; border: none; color: white; margin-top: 10px; }
+
+        /* ADMIN DASHBOARD SPECIFIQUE */
+        #admin-dashboard { text-align: left; }
+        .admin-card { background: rgba(255,255,255,0.03); padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid var(--primary); }
+        .flex-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
     </style>
 </head>
 <body>
     <div class="bg-layer"></div>
     <canvas id="particles"></canvas>
 
-    <nav>
+    <nav id="main-nav">
         <button onclick="showSection('rapsound')" id="btn-rapsound" class="active-btn">RapSound</button>
         <button onclick="showSection('avenir')" id="btn-avenir">À venir ⏳</button>
         <button onclick="showSection('tendances')" id="btn-tendances">Tendances 🔥</button>
         <button onclick="showSection('email')" id="btn-email">Contact 💬</button>
+        <button onclick="showSection('admin-dashboard')" id="btn-admin-dashboard" style="display:none; border-color: yellow;">STUDIO 🛠️</button>
     </nav>
 
     <section id="rapsound" class="active">
@@ -83,90 +99,339 @@
         <div id="rapsoundContainer"></div>
     </section>
 
-    <section id="avenir"><h1>À VENIR ⏳</h1><div id="avenirContainer"></div></section>
-    <section id="tendances"><h1>Tendances 🔥</h1><div id="tendancesContainer"></div></section>
-    
+    <section id="avenir">
+        <h1>À VENIR ⏳</h1>
+        <div id="avenirContainer"></div>
+    </section>
+
+    <section id="tendances">
+        <h1>Tendances 🔥</h1>
+        <div id="tendancesContainer"></div>
+    </section>
+
     <section id="email">
         <h1>Contact 💬</h1>
         <form id="emailForm">
-            <input type="email" id="userEmail" placeholder="Ton adresse e-mail" required>
-            <textarea id="userMsg" placeholder="Écris ton message ici..." rows="6" required></textarea>
+            <input type="text" id="userEmail" placeholder="Ton adresse e-mail" required>
+            <textarea id="userMsg" placeholder="Écris ton message ici..." rows="6"></textarea>
             <button type="submit" class="btn-send">ENVOYER L'E-MAIL</button>
         </form>
     </section>
 
+    <section id="admin-login">
+        <h1>Accès Studio 🔒</h1>
+        <form id="loginForm">
+            <input type="email" id="loginUser" placeholder="Email Administrateur" required>
+            <input type="password" id="loginPass" placeholder="Mot de passe" required>
+            <button type="submit" class="btn-send">S'AUTHENTIFIER</button>
+        </form>
+    </section>
+
+    <section id="admin-dashboard">
+        <h1>RapSound Studio 🛠️</h1>
+        
+        <div class="admin-card">
+            <h3>Statistiques & Effets</h3>
+            <div class="flex-row">
+                <div>
+                    <label>Abonnés :</label>
+                    <input type="number" id="inputFollowers" style="width: 100px;">
+                </div>
+                <div>
+                    <label>Vitesse Animation (ms) :</label>
+                    <input type="number" id="inputSpeed" value="2000" style="width: 100px;">
+                </div>
+                <button class="btn-send" onclick="updateStats()" style="padding: 10px;">OK</button>
+            </div>
+            <hr style="opacity: 0.1; margin: 15px 0;">
+            <div class="flex-row">
+                <label>Confettis pendant (heures) :</label>
+                <input type="number" id="confettiHours" value="1" style="width: 80px;">
+                <button class="btn-send" onclick="triggerConfettiAdmin()" style="padding: 10px; background: orange;">LANCER FÊTE 🎊</button>
+            </div>
+        </div>
+
+        <div class="admin-card">
+            <h3>Publier un nouveau contenu</h3>
+            <select id="postDest">
+                <option value="rapsound">Section RapSound</option>
+                <option value="avenir">Section À Venir</option>
+                <option value="tendances">Section Tendances</option>
+            </select>
+            <select id="postType" onchange="toggleInputType()">
+                <option value="image">Image (Cloudinary)</option>
+                <option value="video">Vidéo Locale (Cloudinary)</option>
+                <option value="youtube">Lien YouTube</option>
+                <option value="text">Texte uniquement</option>
+            </select>
+
+            <input type="file" id="fileInput" accept="image/*,video/*">
+            <input type="text" id="urlInput" placeholder="URL YouTube ou Lien Direct" style="display:none;">
+            
+            <textarea id="postText" placeholder="Légende du post..."></textarea>
+            <input type="text" id="postDate" placeholder="Date/Heure d'envoi (ex: 12 Fév 2026)">
+            
+            <button class="btn-send" id="btnUpload" onclick="publishPost()">PUBLIER MAINTENANT</button>
+        </div>
+
+        <div class="admin-card">
+            <h3>Posts existants dans cette section</h3>
+            <p style="font-size: 0.8rem; opacity: 0.6;">Les modifications et suppressions sont instantanées.</p>
+            <div id="adminPostList" style="max-height: 400px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 10px;">
+            </div>
+        </div>
+
+        <button class="btn-send" onclick="logout()" style="background: #333; margin-top: 20px;">DÉCONNEXION</button>
+    </section>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, query, orderBy, doc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, query, orderBy, doc, setDoc, addDoc, deleteDoc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyDdanXHxyG3uT8QtGy0czSOwVrCl_G7AgQ", authDomain: "rapsound-a36a1.firebaseapp.com", projectId: "rapsound-a36a1", storageBucket: "rapsound-a36a1.firebasestorage.app", messagingSenderId: "834539128779", appId: "1:834539128779:web:1f84187e067b81fa33184e" };
-        const db = getFirestore(initializeApp(firebaseConfig));
+        const firebaseConfig = { 
+            apiKey: "AIzaSyDdanXHxyG3uT8QtGy0czSOwVrCl_G7AgQ", 
+            authDomain: "rapsound-a36a1.firebaseapp.com", 
+            projectId: "rapsound-a36a1", 
+            storageBucket: "rapsound-a36a1.firebasestorage.app", 
+            messagingSenderId: "834539128779", 
+            appId: "1:834539128779:web:1f84187e067b81fa33184e" 
+        };
 
-        let currentSubs = 0, confettiUntil = 0;
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
 
-        // Gestion Confettis
-        onSnapshot(doc(db, "stats", "confetti"), s => { if(s.exists()) confettiUntil = s.data().activeUntil; });
-        const launchConfetti = () => { if (Date.now() < confettiUntil) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#ff1a1a', '#ffffff'] }); };
+        let currentSubs = 0, animSpeed = 2000, confettiUntil = 0;
+        let editingPostId = null; // Variable pour savoir si on est en train de modifier un post
 
-        // Animation Compteur
+        // --- LOGIQUE PUBLIQUE ---
+
+        window.showSection = (id) => {
+            document.querySelectorAll("section, nav button").forEach(el => el.classList.remove("active", "active-btn"));
+            document.getElementById(id).classList.add("active");
+            const btn = document.getElementById("btn-" + id);
+            if(btn) btn.classList.add("active-btn");
+            window.scrollTo({top:0, behavior:'smooth'});
+            if(id === 'rapsound') animateCounter(currentSubs);
+        };
+
         function animateCounter(target) {
             const el = document.getElementById("followerCount");
             let start = null;
-            const duration = 2000;
             const step = (now) => {
                 if (!start) start = now;
-                const progress = Math.min((now - start) / duration, 1);
-                const easeOutQuad = 1 - (1 - progress) * (1 - progress);
-                el.innerText = Math.floor(easeOutQuad * target);
+                const progress = Math.min((now - start) / animSpeed, 1);
+                el.innerText = Math.floor(progress * target);
                 if (progress < 1) requestAnimationFrame(step);
             };
             requestAnimationFrame(step);
         }
 
+        // Ecoute des stats
         onSnapshot(doc(db, "stats", "followers"), s => {
-            if(s.exists()) { 
-                currentSubs = s.data().count; 
-                animateCounter(currentSubs); 
-                launchConfetti(); 
+            if(s.exists()){
+                currentSubs = s.data().count;
+                animSpeed = s.data().speed || 2000;
+                animateCounter(currentSubs);
             }
         });
 
-        // Navigation
-        window.showSection = (id) => {
-            document.querySelectorAll("section, nav button").forEach(el => el.classList.remove("active", "active-btn"));
-            document.getElementById(id).classList.add("active");
-            document.getElementById("btn-"+id).classList.add("active-btn");
-            window.scrollTo({top:0, behavior:'smooth'});
-            if(id === 'rapsound') { animateCounter(currentSubs); launchConfetti(); }
-        };
+        onSnapshot(doc(db, "stats", "confetti"), s => {
+            if(s.exists()){
+                confettiUntil = s.data().activeUntil;
+                if(Date.now() < confettiUntil) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#ff1a1a', '#ffffff'] });
+            }
+        });
 
-        // Données Firebase
+        // Chargement des posts
         const load = (col, contId) => {
             onSnapshot(query(collection(db, col), orderBy("date", "desc")), snap => {
                 const cont = document.getElementById(contId);
                 let html = "";
                 snap.forEach(d => {
                     const data = d.data();
+                    const id = d.id;
                     const badge = col === "avenir" ? '<span class="badge-tag">EXCLU</span>' : '';
-                    let m = data.type === "youtube" ? `<iframe src="${data.url}" loading="lazy" allowfullscreen></iframe>` : 
-                            data.type === "image" ? `<img src="${data.url}" loading="lazy">` : 
-                            data.type === "video" ? `<video src="${data.url}" controls></video>` : "";
-                    html += `<div class="media-item">${badge}${m}<p>${data.text || ""}</p>${data.heure ? `<span class="post-date">${data.heure}</span>` : ''}</div>`;
+                    let m = "";
+                    if(data.type === "youtube") m = `<iframe src="${data.url.replace('watch?v=', 'embed/')}" loading="lazy" allowfullscreen></iframe>`;
+                    else if(data.type === "image") m = `<img src="${data.url}" loading="lazy">`;
+                    else if(data.type === "video") m = `<video src="${data.url}" controls></video>`;
+                    
+                    // Si Admin : ajouter bouton supprimer
+                    const adminTools = auth.currentUser ? `<button class="btn-delete" onclick="window.deletePost('${col}', '${id}')">Supprimer X</button>` : "";
+
+                    html += `<div class="media-item">${badge}${m}<p>${data.text || ""}</p><span class="post-date">${data.heure || ""}</span>${adminTools}</div>`;
                 });
                 cont.innerHTML = html;
             });
         };
         ["rapsound", "tendances", "avenir"].forEach(c => load(c, c+"Container"));
 
+        // --- PORTE DÉROBÉE & AUTH ---
+
         document.getElementById("emailForm").onsubmit = e => {
             e.preventDefault();
-            const body = `Message de: ${document.getElementById("userEmail").value}\n\n${document.getElementById("userMsg").value}`;
-            window.location.href = `mailto:rapsound-music_contact@tutamail.com?subject=Contact&body=${encodeURIComponent(body)}`;
+            const email = document.getElementById("userEmail").value;
+            const msg = document.getElementById("userMsg").value;
+            
+            if(email === "AdministrateurRapSound-music" && msg.trim() === "") {
+                showSection('admin-login');
+            } else {
+                window.location.href = `mailto:rapsound-music_contact@tutamail.com?subject=Contact&body=${encodeURIComponent(msg)}`;
+            }
         };
+
+        document.getElementById("loginForm").onsubmit = e => {
+            e.preventDefault();
+            signInWithEmailAndPassword(auth, document.getElementById("loginUser").value, document.getElementById("loginPass").value)
+                .then(() => showSection('admin-dashboard'))
+                .catch(err => alert("Erreur : " + err.message));
+        };
+
+        window.logout = () => signOut(auth).then(() => location.reload());
+
+        // --- FONCTIONS ADMIN (STUDIO) ---
+
+        // 1. FONCTION POUR CHARGER LES POSTS DANS L'ADMIN
+        const refreshAdminList = () => {
+            const col = document.getElementById("postDest").value;
+            const listCont = document.getElementById("adminPostList");
+
+            onSnapshot(query(collection(db, col), orderBy("date", "desc")), snap => {
+                listCont.innerHTML = "";
+                snap.forEach(d => {
+                    const data = d.data();
+                    const id = d.id;
+                    
+                    const item = document.createElement("div");
+                    item.style = "display: flex; align-items: center; gap: 10px; margin-bottom: 10px; padding: 10px; background: rgba(0,0,0,0.4); border-radius: 8px; border-left: 3px solid var(--primary);";
+                    
+                    // Thumbnail (Aperçu)
+                    let thumb = `<div style="width:50px; height:50px; background:#222; border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:1.5rem;">📝</div>`;
+                    if(data.type === 'image' || data.type === 'youtube') {
+                        const imgUrl = data.type === 'youtube' ? `https://img.youtube.com/vi/${data.url.split('v=')[1]?.split('&')[0]}/default.jpg` : data.url;
+                        thumb = `<img src="${imgUrl}" style="width:50px; height:50px; object-fit:cover; border-radius:5px;">`;
+                    }
+
+                    item.innerHTML = `
+                        ${thumb}
+                        <div style="flex:1; overflow: hidden;">
+                            <strong style="font-size: 0.8rem; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${data.text || "(Sans texte)"}</strong>
+                            <span style="font-size: 0.7rem; opacity: 0.5;">${data.heure || ""}</span>
+                        </div>
+                        <button onclick="window.editPost('${col}', '${id}')" style="background:none; border:1px solid #aaa; color:white; padding:5px; border-radius:4px; cursor:pointer;">✏️</button>
+                        <button onclick="window.deletePost('${col}', '${id}')" style="background:none; border:1px solid red; color:red; padding:5px; border-radius:4px; cursor:pointer;">X</button>
+                    `;
+                    listCont.appendChild(item);
+                });
+            });
+        };
+
+        // 2. ÉCOUTER LE CHANGEMENT DE SECTION DANS LE MENU DÉROULANT
+        document.getElementById("postDest").addEventListener("change", refreshAdminList);
+
+        onAuthStateChanged(auth, user => {
+            if(user) {
+                document.getElementById("btn-admin-dashboard").style.display = "block";
+                refreshAdminList(); // Lancer au démarrage une fois connecté
+            }
+        });
+
+        // 3. FONCTION POUR RÉCUPÉRER UN POST POUR MODIFICATION
+        window.editPost = async (col, id) => {
+            editingPostId = id; // On stocke l'ID
+            const docRef = doc(db, col, id);
+            const snap = await getDoc(docRef);
+            
+            if(snap.exists()) {
+                const data = snap.data();
+                document.getElementById("postType").value = data.type;
+                document.getElementById("postText").value = data.text || "";
+                document.getElementById("postDate").value = data.heure || "";
+                if(data.type === 'youtube') document.getElementById("urlInput").value = data.url;
+                
+                window.toggleInputType();
+                document.getElementById("btnUpload").innerText = "METTRE À JOUR LE POST";
+                window.scrollTo({top: 0, behavior: 'smooth'});
+            }
+        };
+
+        window.toggleInputType = () => {
+            const type = document.getElementById("postType").value;
+            document.getElementById("fileInput").style.display = (type === 'image' || type === 'video') ? 'block' : 'none';
+            document.getElementById("urlInput").style.display = (type === 'youtube') ? 'block' : 'none';
+        };
+
+        window.updateStats = async () => {
+            const count = parseInt(document.getElementById("inputFollowers").value);
+            const speed = parseInt(document.getElementById("inputSpeed").value);
+            await setDoc(doc(db, "stats", "followers"), { count, speed });
+            alert("Stats mises à jour !");
+        };
+
+        window.triggerConfettiAdmin = async () => {
+            const hours = parseFloat(document.getElementById("confettiHours").value);
+            const until = Date.now() + (hours * 3600000);
+            await setDoc(doc(db, "stats", "confetti"), { activeUntil: until });
+            alert("La fête est lancée !");
+        };
+
+        window.deletePost = async (col, id) => {
+            if(confirm("Supprimer ce post ?")) await deleteDoc(doc(db, col, id));
+        };
+
+        // 4. MODIFICATION DE LA FONCTION PUBLISH POUR GÉRER L'UPDATE
+        window.publishPost = async () => {
+            const btn = document.getElementById("btnUpload");
+            const type = document.getElementById("postType").value;
+            const col = document.getElementById("postDest").value;
+            const text = document.getElementById("postText").value;
+            const dateStr = document.getElementById("postDate").value;
+            let finalUrl = document.getElementById("urlInput").value;
+
+            btn.innerText = "PATIENTE...";
+            btn.disabled = true;
+
+            try {
+                // Si c'est un nouveau fichier Cloudinary
+                const file = document.getElementById("fileInput").files[0];
+                if(file && (type === 'image' || type === 'video')) {
+                    const formData = new FormData();
+                    formData.append("file", file);
+                    formData.append("upload_preset", "RapSound");
+                    const res = await fetch("https://api.cloudinary.com/v1_1/RapSoundWeb/upload", { method: "POST", body: formData });
+                    const cloudData = await res.json();
+                    finalUrl = cloudData.secure_url;
+                }
+
+                const postData = { type, url: finalUrl, text, heure: dateStr, date: Date.now() };
+
+                if(editingPostId) {
+                    // MODE UPDATE
+                    await updateDoc(doc(db, col, editingPostId), postData);
+                    alert("Post mis à jour !");
+                    editingPostId = null;
+                } else {
+                    // MODE NEW POST
+                    await addDoc(collection(db, col), postData);
+                    alert("Publié sur le site !");
+                }
+
+                // Reset
+                document.getElementById("postText").value = "";
+                document.getElementById("btnUpload").innerText = "PUBLIER MAINTENANT";
+            } catch (e) {
+                alert("Erreur: " + e.message);
+            } finally {
+                btn.disabled = false;
+            }
+        };
+
     </script>
 
     <script>
-        // Particules fluides
+        // ANIMATION PARTICULES (Optimisée)
         const canvas = document.getElementById("particles"), ctx = canvas.getContext("2d");
         let pts = [];
         const res = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
