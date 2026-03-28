@@ -18,7 +18,7 @@
     <meta property="og:image" content="https://rapsound.github.io/Official/favicon.png"> 
     <meta property="og:type" content="website">
     
-    <title>RapSound | Official & Studio</title>
+    <title>RapSound | Official </title>
     
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@300;400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
@@ -76,6 +76,21 @@
         .media-item iframe, .media-item img, .media-item video { width: 100%; aspect-ratio: 16/9; border-radius: 10px; border: none; }
         .media-item p { white-space: pre-wrap; margin: 12px 0; }
         .post-date { display: block; text-align: right; font-size: 0.7rem; opacity: 0.5; font-style: italic; }
+
+        /* Style du lecteur audio natif */
+        .media-item audio {
+            width: 100%; height: 45px; margin-top: 10px;
+            filter: invert(1) hue-rotate(180deg) brightness(1.5);
+        }
+        .audio-container {
+            background: rgba(255, 26, 26, 0.1); padding: 15px; border-radius: 10px; border: 1px solid var(--primary);
+        }
+
+        /* Badge Dynamique */
+        .badge-tag { 
+            background: var(--primary); padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; 
+            font-weight: bold; position: absolute; top: 10px; left: 10px; z-index: 5; text-transform: uppercase;
+        }
 
         /* FORMULAIRES */
         input, textarea, select { 
@@ -160,9 +175,9 @@
             </div>
             <hr style="opacity: 0.1; margin: 15px 0;">
             <div class="flex-row">
-                <label>Confettis pendant (heures) :</label>
+                <label>Confettis 🎉 pendant (heures) :</label>
                 <input type="number" id="confettiHours" value="1" style="width: 80px;">
-                <button class="btn-send" onclick="triggerConfettiAdmin()" style="padding: 10px; background: orange;">LANCER FÊTE 🎊</button>
+                <button class="btn-send" onclick="triggerConfettiAdmin()" style="padding: 10px; background: orange;">Confettis 🎉</button>
             </div>
         </div>
 
@@ -174,17 +189,20 @@
                 <option value="tendances">Section Tendances</option>
             </select>
             <select id="postType" onchange="toggleInputType()">
-                <option value="image">Image (Cloudinary)</option>
-                <option value="video">Vidéo Locale (Cloudinary)</option>
-                <option value="youtube">Lien YouTube</option>
-                <option value="text">Texte uniquement</option>
+                <option value="image">Image 🗺</option>
+                <option value="video">Vidéo 🎞</option>
+                <option value="audio">Audio 🔊</option>
+                <option value="youtube">Lien YouTube 🔗</option>
+                <option value="text">Texte uniquement 💬</option>
             </select>
 
-            <input type="file" id="fileInput" accept="image/*,video/*">
+            <input type="file" id="fileInput" accept="image/*,video/*,audio/*">
             <input type="text" id="urlInput" placeholder="URL YouTube ou Lien Direct" style="display:none;">
             
             <textarea id="postText" placeholder="Légende du post..."></textarea>
-            <input type="text" id="postDate" placeholder="Date/Heure d'envoi (ex: 12 Fév 2026)">
+            
+            <input type="text" id="postBadge" placeholder="Badge">
+            <input type="text" id="postDate" placeholder="Date/Heure d'envoi ">
             
             <div id="uploadProgressCont" style="display:none; width:100%; background: #222; border-radius: 10px; height: 10px; margin: 10px 0; overflow: hidden;">
                 <div id="uploadProgressBar" style="width: 0%; height: 100%; background: var(--primary); transition: width 0.3s;"></div>
@@ -195,7 +213,6 @@
 
         <div class="admin-card">
             <h3>Posts existants dans cette section</h3>
-            <p style="font-size: 0.8rem; opacity: 0.6;">Les modifications et suppressions sont instantanées. Utilise les flèches pour changer l'ordre.</p>
             <div id="adminPostList" style="max-height: 400px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 10px;">
             </div>
         </div>
@@ -223,9 +240,8 @@
 
         let currentSubs = 0, animSpeed = 2000, confettiUntil = 0;
         let editingPostId = null; 
-        let currentAdminPosts = []; // Pour gérer l'ordre
+        let currentAdminPosts = []; 
 
-        // --- LOGIQUE PUBLIQUE ---
         window.showSection = (id) => {
             document.querySelectorAll("section, nav button").forEach(el => el.classList.remove("active", "active-btn"));
             document.getElementById(id).classList.add("active");
@@ -269,11 +285,22 @@
                 snap.forEach(d => {
                     const data = d.data();
                     const id = d.id;
-                    const badge = col === "avenir" ? '<span class="badge-tag">EXCLU</span>' : '';
+                    
+                    // MODIFICATION BADGE DYNAMIQUE
+                    const badgeText = data.badge || ""; 
+                    const badge = badgeText ? `<span class="badge-tag">${badgeText}</span>` : '';
+                    
                     let m = "";
-                    if(data.type === "youtube") m = `<iframe src="${data.url.replace('watch?v=', 'embed/')}" loading="lazy" allowfullscreen></iframe>`;
-                    else if(data.type === "image") m = `<img src="${data.url}" loading="lazy">`;
+                    if(data.type === "youtube") {
+                        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
+                        const match = data.url.match(regExp);
+                        const videoId = (match && match[2].length === 11) ? match[2] : null;
+                        m = videoId ? `<iframe src="https://www.youtube.com/embed/${videoId}" loading="lazy" allowfullscreen></iframe>` : `<p>⚠️ Lien YouTube invalide</p>`;
+                    } else if(data.type === "image") m = `<img src="${data.url}" loading="lazy">`;
                     else if(data.type === "video") m = `<video src="${data.url}" controls></video>`;
+                    else if(data.type === "audio") {
+                        m = `<div class="audio-container"><audio src="${data.url}" controls controlsList="nodownload"></audio></div>`;
+                    }
                     
                     const adminTools = auth.currentUser ? `<button class="btn-delete" onclick="window.deletePost('${col}', '${id}')">Supprimer X</button>` : "";
                     html += `<div class="media-item">${badge}${m}<p>${data.text || ""}</p><span class="post-date">${data.heure || ""}</span>${adminTools}</div>`;
@@ -283,7 +310,6 @@
         };
         ["rapsound", "tendances", "avenir"].forEach(c => load(c, c+"Container"));
 
-        // --- AUTHENTIFICATION ---
         document.getElementById("emailForm").onsubmit = e => {
             e.preventDefault();
             const email = document.getElementById("userEmail").value;
@@ -301,38 +327,38 @@
 
         window.logout = () => signOut(auth).then(() => location.reload());
 
-        // --- FONCTIONS ADMIN ---
         const refreshAdminList = () => {
             const col = document.getElementById("postDest").value;
             const listCont = document.getElementById("adminPostList");
 
             onSnapshot(query(collection(db, col), orderBy("date", "desc")), snap => {
                 listCont.innerHTML = "";
-                currentAdminPosts = []; // On réinitialise notre liste locale
-                
-                // Remplir le tableau local
+                currentAdminPosts = []; 
                 snap.forEach(d => currentAdminPosts.push({ id: d.id, ...d.data() }));
 
-                // Générer l'affichage
                 currentAdminPosts.forEach((data, index) => {
                     const item = document.createElement("div");
                     item.style = "display: flex; align-items: center; gap: 10px; margin-bottom: 10px; padding: 10px; background: rgba(0,0,0,0.4); border-radius: 8px; border-left: 3px solid var(--primary);";
                     
                     let thumb = `<div style="width:40px; height:40px; background:#222; border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:1.2rem;">📝</div>`;
-                    if(data.type === 'image' || data.type === 'youtube') {
-                        const imgUrl = data.type === 'youtube' ? `https://img.youtube.com/vi/${data.url.split('v=')[1]?.split('&')[0]}/default.jpg` : data.url;
+                    
+                    if(data.type === 'youtube') {
+                        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
+                        const match = data.url.match(regExp);
+                        const videoId = (match && match[2].length === 11) ? match[2] : null;
+                        const imgUrl = videoId ? `https://img.youtube.com/vi/${videoId}/mqdefault.jpg` : "";
                         thumb = `<img src="${imgUrl}" style="width:40px; height:40px; object-fit:cover; border-radius:5px;">`;
+                    } else if(data.type === 'image') {
+                        thumb = `<img src="${data.url}" style="width:40px; height:40px; object-fit:cover; border-radius:5px;">`;
+                    } else if(data.type === 'audio') {
+                        thumb = `<div style="width:40px; height:40px; background:var(--primary); border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:1.2rem;">🎵</div>`;
                     }
 
-                    // Boutons Monter/Descendre (Désactivés si tout en haut ou tout en bas)
                     const btnUp = index > 0 ? `<button onclick="window.movePost('${col}', ${index}, -1)" style="background:#444; border:none; color:white; padding:2px 8px; cursor:pointer; border-radius:3px;">▲</button>` : `<div style="width:25px;"></div>`;
                     const btnDown = index < currentAdminPosts.length - 1 ? `<button onclick="window.movePost('${col}', ${index}, 1)" style="background:#444; border:none; color:white; padding:2px 8px; cursor:pointer; border-radius:3px;">▼</button>` : `<div style="width:25px;"></div>`;
 
                     item.innerHTML = `
-                        <div style="display:flex; flex-direction:column; gap:4px; margin-right:5px;">
-                            ${btnUp}
-                            ${btnDown}
-                        </div>
+                        <div style="display:flex; flex-direction:column; gap:4px; margin-right:5px;">${btnUp}${btnDown}</div>
                         ${thumb}
                         <div style="flex:1; overflow: hidden;">
                             <strong style="font-size: 0.8rem; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${data.text || "(Sans texte)"}</strong>
@@ -346,17 +372,12 @@
             });
         };
 
-        // FONCTION MAGIQUE POUR CHANGER L'ORDRE
         window.movePost = async (col, currentIndex, direction) => {
             const targetIndex = currentIndex + direction;
             if (targetIndex < 0 || targetIndex >= currentAdminPosts.length) return;
-
             const currentDoc = currentAdminPosts[currentIndex];
             const targetDoc = currentAdminPosts[targetIndex];
-
-            // On échange simplement les timestamps (date) entre les deux documents !
             const tempDate = currentDoc.date;
-            
             await updateDoc(doc(db, col, currentDoc.id), { date: targetDoc.date });
             await updateDoc(doc(db, col, targetDoc.id), { date: tempDate });
         };
@@ -379,8 +400,9 @@
                 document.getElementById("postType").value = data.type;
                 document.getElementById("postText").value = data.text || "";
                 document.getElementById("postDate").value = data.heure || "";
-                if(data.type === 'youtube') document.getElementById("urlInput").value = data.url;
+                document.getElementById("postBadge").value = data.badge || ""; // AJOUTÉ ICI
                 
+                if(data.type === 'youtube') document.getElementById("urlInput").value = data.url;
                 window.toggleInputType();
                 document.getElementById("btnUpload").innerText = "METTRE À JOUR LE POST";
                 window.scrollTo({top: 0, behavior: 'smooth'});
@@ -389,7 +411,7 @@
 
         window.toggleInputType = () => {
             const type = document.getElementById("postType").value;
-            document.getElementById("fileInput").style.display = (type === 'image' || type === 'video') ? 'block' : 'none';
+            document.getElementById("fileInput").style.display = (type === 'image' || type === 'video' || type === 'audio') ? 'block' : 'none';
             document.getElementById("urlInput").style.display = (type === 'youtube') ? 'block' : 'none';
         };
 
@@ -411,16 +433,15 @@
             if(confirm("Supprimer ce post ?")) await deleteDoc(doc(db, col, id));
         };
 
-        // NOUVELLE FONCTION PUBLISH AVEC BARRE DE PROGRESSION
         window.publishPost = async () => {
             const btn = document.getElementById("btnUpload");
             const progCont = document.getElementById("uploadProgressCont");
             const progBar = document.getElementById("uploadProgressBar");
-            
             const type = document.getElementById("postType").value;
             const col = document.getElementById("postDest").value;
             const text = document.getElementById("postText").value;
             const dateStr = document.getElementById("postDate").value;
+            const badgeValue = document.getElementById("postBadge").value; // AJOUTÉ ICI
             let finalUrl = document.getElementById("urlInput").value;
 
             btn.disabled = true;
@@ -428,20 +449,16 @@
 
             try {
                 const file = document.getElementById("fileInput").files[0];
-
-                if (file && (type === 'image' || type === 'video')) {
+                if (file && (type === 'image' || type === 'video' || type === 'audio')) {
                     progCont.style.display = "block";
                     progBar.style.width = "0%";
-
                     const formData = new FormData();
                     formData.append("file", file);
                     formData.append("upload_preset", "RapSoundWeb");
 
-                    // Utilisation de XMLHttpRequest pour suivre la progression
                     finalUrl = await new Promise((resolve, reject) => {
                         const xhr = new XMLHttpRequest();
                         xhr.open("POST", "https://api.cloudinary.com/v1_1/dpzhcg6sp/upload");
-
                         xhr.upload.onprogress = (e) => {
                             if (e.lengthComputable) {
                                 const percent = Math.round((e.loaded / e.total) * 100);
@@ -449,25 +466,23 @@
                                 btn.innerText = `CHARGEMENT : ${percent}%`;
                             }
                         };
-
                         xhr.onload = () => {
                             const res = JSON.parse(xhr.responseText);
                             if (res.secure_url) resolve(res.secure_url);
                             else reject(new Error(res.error.message));
                         };
-
                         xhr.onerror = () => reject(new Error("Échec du transfert réseau"));
                         xhr.send(formData);
                     });
                 }
 
-                // Ajout du post
                 const postData = { 
                     type, 
                     url: finalUrl || "", 
                     text, 
                     heure: dateStr, 
-                    date: Date.now(),
+                    badge: badgeValue, // AJOUTÉ ICI
+                    date: Date.now(), 
                     position: 0 
                 };
 
@@ -480,9 +495,10 @@
                     alert("Publié ! 🚀");
                 }
 
-                // Reset
+                // RESET
                 document.getElementById("postText").value = "";
                 document.getElementById("fileInput").value = "";
+                document.getElementById("postBadge").value = ""; // AJOUTÉ ICI
                 progCont.style.display = "none";
                 btn.innerText = "PUBLIER MAINTENANT";
             } catch (e) {
@@ -495,7 +511,6 @@
     </script>
 
     <script>
-        // ANIMATION PARTICULES
         const canvas = document.getElementById("particles"), ctx = canvas.getContext("2d");
         let pts = [];
         const res = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
